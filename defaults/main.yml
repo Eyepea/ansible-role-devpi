@@ -1,0 +1,5 @@
+---
+
+devpi_host: 127.0.0.1
+devpi_port: 3141
+devpi_args: []

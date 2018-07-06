@@ -1,0 +1,50 @@
+---
+
+- name: Create user
+  user:
+    name: devpi
+    state: present
+
+- name: Install devpi
+  pip:
+    name: devpi-server
+    executable: pip3
+    state: latest
+    extra_args: --user
+  notify: restart devpi
+
+- name: Devpi init
+  become: devpi
+  command: /home/devpi/.local/bin/devpi-server --init
+  chdir: /home/devpi
+  register: devpi_init
+  failed_when: "'already contains devpi-server data' not in devpi_init or 'DB: Creating schema' not in devpi_init"
+  changed_when: 'DB: Creating schema' in devpi_init
+
+- name: Create systemd directories
+  file:
+    path: "/home/devpi/{{ item }}"
+    owner: devpi
+    group: devpi
+    state: directory
+  with_items:
+    - .config
+    - .config/systemd
+    - .config/systemd/user
+
+- name: Systemd service
+  template:
+    src: home/devpi/.config/systemd/user/devpi-server.service.j2
+    dest: /home/devpi/.config/systemd/user/devpi-server.service
+    owner: devpi
+    group: devpi
+  notify: restart devpi
+
+- name: Start & enable service
+  become: devpi
+  systemd:
+    name: devpi-service
+    state: started
+    user: yes
+    enabled: yes
+    daemon-reload: yes

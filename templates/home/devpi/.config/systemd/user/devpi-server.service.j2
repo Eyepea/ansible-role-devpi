@@ -1,0 +1,11 @@
+[Unit]
+Description=Devpi server
+
+[Service]
+User=devpi
+Group=devpi
+WorkingDirectory=/home/devpi
+ExecStart=/home/devpi/.local/bin/devpi-server --host {{ devpi_host }} --port {{ devpi_port }} {{ devpi_args | join('-- ') }}
+
+[Install]
+WantedBy=multi-user.target

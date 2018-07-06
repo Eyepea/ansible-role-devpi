@@ -1,0 +1,8 @@
+---
+
+- name: restart devpi
+  become: devpi
+  systemd:
+    name: devpi-service
+    state: restarted
+    user: yes
