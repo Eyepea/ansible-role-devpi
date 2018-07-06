@@ -5,7 +5,7 @@ Description=Devpi server
 User=devpi
 Group=devpi
 WorkingDirectory=/home/devpi
-ExecStart=/home/devpi/.local/bin/devpi-server --host {{ devpi_host }} --port {{ devpi_port }} {{ devpi_args | join('-- ') }}
+ExecStart=/home/devpi/.env/bin/devpi-server --host {{ devpi_host }} --port {{ devpi_port }} {{ devpi_args | join('-- ') }}
 
 [Install]
 WantedBy=multi-user.target

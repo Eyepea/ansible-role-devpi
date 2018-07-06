@@ -1,6 +1,10 @@
 ---
 services: docker
 
+addons:
+  apt:
+    update: True
+
 env:
   - distro=debian8
   - distro=debian9
@@ -20,10 +24,11 @@ install:
 
 script:
   # Run playbook.
-  - docker exec --tty $container_id env TERM=xterm ansible-playbook /etc/ansible/roles/ansible-role-paperless/tests/test.yml --syntax-check
-  - docker exec $container_id env TERM=xterm env ANSIBLE_FORCE_COLOR=1 ansible-playbook /etc/ansible/roles/ansible-role-paperless/tests/test.yml -vvv
-  - docker exec $container_id ansible-playbook /etc/ansible/roles/ansible-role-paperless/tests/test.yml | tee -a $idempotence
+  - docker exec --tty $container_id env TERM=xterm ansible-playbook /etc/ansible/roles/ansible-role-devpi/tests/test.yml --syntax-check
+  - docker exec $container_id env TERM=xterm env ANSIBLE_FORCE_COLOR=1 ansible-playbook /etc/ansible/roles/ansible-role-devpi/tests/test.yml -vvv
+  - docker exec $container_id ansible-playbook /etc/ansible/roles/ansible-role-devpi/tests/test.yml | tee -a $idempotence
   - tail $idempotence | grep -q 'changed=0.*failed=0' && (printf 'Idempotence test pass') || (printf 'Idempotence test fail' && exit 1)
 
   # Test
-  - docker exec --tty $container_id env TERM=xterm apt install -y curl && curl localhost:3141
+  - docker exec --tty $container_id env TERM=xterm apt install -y curl
+  - docker exec --tty $container_id env TERM=xterm curl localhost:3141 | grep '"mirror_url": "https://pypi.org/simple/"'

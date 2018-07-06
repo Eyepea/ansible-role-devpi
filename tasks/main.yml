@@ -5,46 +5,59 @@
     name: devpi
     state: present
 
+- name: Install python3-pip
+  apt:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - python3-pip
+  when: ansible_python_version.startswith('3')
+
+- name: Install python-pip
+  apt:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - python-pip
+  when: ansible_python_version.startswith('2')
+
+- name: Install virtualenv
+  pip:
+    name: virtualenv
+    state: latest
+  when: ansible_python_version.startswith('2')
+
 - name: Install devpi
+  become: yes
+  become_user: devpi
   pip:
     name: devpi-server
-    executable: pip3
     state: latest
-    extra_args: --user
+    virtualenv: /home/devpi/.env
   notify: restart devpi
 
 - name: Devpi init
-  become: devpi
-  command: /home/devpi/.local/bin/devpi-server --init
-  chdir: /home/devpi
+  become: yes
+  become_user: devpi
+  command: /home/devpi/.env/bin/devpi-server --init
   register: devpi_init
-  failed_when: "'already contains devpi-server data' not in devpi_init or 'DB: Creating schema' not in devpi_init"
-  changed_when: 'DB: Creating schema' in devpi_init
+  args:
+    chdir: /home/devpi
+    creates: /home/devpi/.devpi
 
-- name: Create systemd directories
+- name: Create systemd directory
   file:
-    path: "/home/devpi/{{ item }}"
-    owner: devpi
-    group: devpi
+    path: /etc/systemd/system
     state: directory
-  with_items:
-    - .config
-    - .config/systemd
-    - .config/systemd/user
 
 - name: Systemd service
   template:
-    src: home/devpi/.config/systemd/user/devpi-server.service.j2
-    dest: /home/devpi/.config/systemd/user/devpi-server.service
-    owner: devpi
-    group: devpi
+    src: etc/systemd/system/devpi-server.service.j2
+    dest: /etc/systemd/system/devpi-server.service
   notify: restart devpi
 
 - name: Start & enable service
-  become: devpi
   systemd:
-    name: devpi-service
+    name: devpi-server.service
     state: started
-    user: yes
     enabled: yes
-    daemon-reload: yes

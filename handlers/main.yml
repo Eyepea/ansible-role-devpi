@@ -1,8 +1,7 @@
 ---
 
 - name: restart devpi
-  become: devpi
   systemd:
-    name: devpi-service
+    name: devpi-server.service
     state: restarted
-    user: yes
+    daemon-reload: yes
