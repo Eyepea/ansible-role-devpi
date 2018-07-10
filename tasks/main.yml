@@ -25,7 +25,6 @@
   pip:
     name: virtualenv
     state: latest
-  when: ansible_python_version.startswith('2')
 
 - name: Install devpi
   become: yes
